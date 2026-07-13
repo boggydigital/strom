@@ -16,44 +16,50 @@ const (
 	forwardSlash        = "/"
 	equalSign           = "="
 	singleQuote         = "'"
+	colon               = ":"
+	semicolon           = ";"
 	classAttributeName  = "class"
+	styleAttributeName  = "style"
 	singleSpace         = " "
 )
 
-type element struct {
-	tagName     string
-	textContent string
-	classes     map[string]any
-	attributes  map[string]string
-	children    []Element
-	deferrals   []func() iter.Seq[Element]
-	mtx         *sync.Mutex
+var restrictedAttributes = []string{classAttributeName, styleAttributeName}
+
+type node struct {
+	tagName             string
+	textContent         []byte
+	classes             map[string]any
+	attributes          map[string]string
+	styles              map[string]string
+	children            []Element
+	getChildrenDelegate func() iter.Seq[Element]
+	mtx                 *sync.Mutex
 }
 
 type Element interface {
 	SetTextContent(textContent string) Element
-
 	AddClass(classes ...string) Element
-
 	SetAttribute(name string, value string) Element
-
+	SetStyles(styles map[string]string) Element
 	Append(nodes ...Element) Element
-	Defer(d func() iter.Seq[Element]) Element
-
 	Write(w io.Writer) error
 }
 
-func (e *element) SetTextContent(textContent string) Element {
+func (e *node) SetTextContent(textContent string) Element {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 
-	e.textContent = textContent
+	e.textContent = []byte(textContent)
 	return e
 }
 
-func (e *element) AddClass(classes ...string) Element {
+func (e *node) AddClass(classes ...string) Element {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
+
+	if e.classes == nil {
+		e.classes = make(map[string]any)
+	}
 
 	for _, class := range classes {
 		e.classes[class] = nil
@@ -62,150 +68,151 @@ func (e *element) AddClass(classes ...string) Element {
 	return e
 }
 
-func (e *element) classList() string {
+func (e *node) SetStyles(styles map[string]string) Element {
+	e.mtx.Lock()
+	defer e.mtx.Unlock()
+
+	if e.styles == nil {
+		e.styles = make(map[string]string)
+	}
+
+	for p, v := range styles {
+		e.styles[p] = v
+	}
+
+	return e
+}
+
+func (e *node) classList() string {
 	return strings.Join(slices.Collect(maps.Keys(e.classes)), singleSpace)
 }
 
-func (e *element) SetAttribute(name string, value string) Element {
+func (e *node) SetAttribute(name string, value string) Element {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
+
+	if e.attributes == nil {
+		e.attributes = make(map[string]string)
+	}
 
 	e.attributes[name] = value
 	return e
 }
 
-func (e *element) Append(nodes ...Element) Element {
+func (e *node) Append(nodes ...Element) Element {
 	e.children = append(e.children, nodes...)
 	return e
 }
 
-func (e *element) Defer(d func() iter.Seq[Element]) Element {
-	e.deferrals = append(e.deferrals, d)
-	return e
-}
-
-func writeAttribute(sb *strings.Builder, name, value string) error {
-	var err error
-	if _, err = sb.WriteString(name); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(equalSign); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(singleQuote); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(value); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(singleQuote); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(singleSpace); err != nil {
-		return err
+func writeStrings(w io.Writer, parts ...string) error {
+	for _, p := range parts {
+		if _, err := w.Write([]byte(p)); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (e *element) Write(w io.Writer) error {
+func writeAttribute(w io.Writer, name, value string) error {
+	return writeStrings(w, singleSpace, name, equalSign, singleQuote, value, singleQuote)
+}
+
+func writeStyles(w io.Writer, styles map[string]string) error {
+	if err := writeStrings(w, singleSpace, styleAttributeName, equalSign, singleQuote); err != nil {
+		return err
+	}
+
+	for p, v := range styles {
+		if err := writeStrings(w, p, colon, v, semicolon); err != nil {
+			return err
+		}
+	}
+
+	return writeStrings(w, singleQuote)
+}
+
+func (e *node) Write(w io.Writer) error {
 
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 
-	sb := new(strings.Builder)
+	switch e.tagName {
+	case "":
+		if len(e.classes) > 0 {
+			return errors.New("transparent containers cannot have classes")
+		}
+		if len(e.attributes) > 0 {
+			return errors.New("transparent containers cannot have attributes")
+		}
+	default:
+		if err := writeStrings(w, openingAngleBracket, e.tagName); err != nil {
+			return nil
+		}
 
-	var err error
-	if _, err = sb.WriteString(openingAngleBracket); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(e.tagName); err != nil {
-		return err
-	}
+		if len(e.classes) > 0 {
 
-	if len(e.attributes) > 0 {
-		if _, err = sb.WriteString(singleSpace); err != nil {
+			for _, ra := range restrictedAttributes {
+				if _, ok := e.attributes[ra]; ok {
+					return errors.New("restrictred attribute " + ra)
+				}
+			}
+
+			if err := writeAttribute(w, classAttributeName, e.classList()); err != nil {
+				return err
+			}
+		}
+
+		if len(e.styles) > 0 {
+			if err := writeStyles(w, e.styles); err != nil {
+				return err
+			}
+		}
+
+		for attributeName, attributeValue := range e.attributes {
+			if err := writeAttribute(w, attributeName, attributeValue); err != nil {
+				return err
+			}
+		}
+
+		if err := writeStrings(w, closingAngleBracket); err != nil {
+			return err
+		}
+
+		if _, err := w.Write(e.textContent); err != nil {
 			return err
 		}
 	}
 
-	if len(e.classes) > 0 {
-		if err = writeAttribute(sb, classAttributeName, e.classList()); err != nil {
-			return err
-		}
+	var children iter.Seq[Element]
 
-		if _, ok := e.attributes[classAttributeName]; ok {
-			return errors.New("you must add classes with AddClass, not SetAttribute")
-		}
+	switch e.getChildrenDelegate {
+	case nil:
+		children = slices.Values(e.children)
+	default:
+		children = e.getChildrenDelegate()
 	}
 
-	for attributeName, attributeValue := range e.attributes {
-		if err = writeAttribute(sb, attributeName, attributeValue); err != nil {
-			return err
-		}
-	}
-
-	if _, err = sb.WriteString(closingAngleBracket); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(e.textContent); err != nil {
-		return err
-	}
-
-	if len(e.children) > 0 {
-
-		// flush currently accumulated element content before writing children content
-
-		if _, err = io.Copy(w, strings.NewReader(sb.String())); err != nil {
-			return err
-		}
-		sb.Reset()
-
-		// intentionally not writing children to strings.Builder to prioritize streaming content
-		// over accumulating the full element subtree
-
-		for _, child := range e.children {
-			if err = child.Write(w); err != nil {
+	if children != nil {
+		for child := range children {
+			if err := child.Write(w); err != nil {
 				return err
 			}
 		}
 	}
 
-	if len(e.deferrals) > 0 {
-
-		// flush currently accumularted element content before writing deferred content
-		if _, err = io.Copy(w, strings.NewReader(sb.String())); err != nil {
+	switch e.tagName {
+	case "":
+	// do nothing
+	default:
+		if err := writeStrings(w, openingAngleBracket, forwardSlash, e.tagName, closingAngleBracket); err != nil {
 			return err
 		}
-		sb.Reset()
-
-		for _, deferral := range e.deferrals {
-			for d := range deferral() {
-				if err = d.Write(w); err != nil {
-					return err
-				}
-			}
-		}
 	}
 
-	if _, err = sb.WriteString(openingAngleBracket); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(forwardSlash); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(e.tagName); err != nil {
-		return err
-	}
-	if _, err = sb.WriteString(closingAngleBracket); err != nil {
-		return err
-	}
-
-	_, err = io.Copy(w, strings.NewReader(sb.String()))
-
-	return err
+	return nil
 }
 
-func CreateElement(options ...string) Element {
+func Create(options ...string) Element {
 
 	var tagName string
 	var textContent string
@@ -217,11 +224,16 @@ func CreateElement(options ...string) Element {
 		textContent = options[1]
 	}
 
-	return &element{
+	return &node{
 		tagName:     tagName,
-		textContent: textContent,
-		classes:     make(map[string]any),
-		attributes:  make(map[string]string),
+		textContent: []byte(textContent),
 		mtx:         &sync.Mutex{},
+	}
+}
+
+func Defer(getChildredDelegate func() iter.Seq[Element]) Element {
+	return &node{
+		getChildrenDelegate: getChildredDelegate,
+		mtx:                 &sync.Mutex{},
 	}
 }
