@@ -372,7 +372,7 @@ func Defer(getChildredDelegate func() iter.Seq[Element]) Element {
 	}
 }
 
-func doctypeHml() Element {
+func DoctypeHml() Element {
 	return &elementNode{
 		mtx:     new(sync.Mutex),
 		tagName: htmlTagName,
@@ -380,16 +380,16 @@ func doctypeHml() Element {
 	}
 }
 
-func style(stylesheet []byte) Element {
+func Stylesheet(content []byte) Element {
 	return &elementNode{
 		mtx:         new(sync.Mutex),
 		tagName:     styleTagName,
-		textContent: stylesheet,
+		textContent: content,
 	}
 }
 
 func Page(title string) Element {
-	root := doctypeHml().
+	root := DoctypeHml().
 		SetAttribute("id", "_top").
 		SetAttribute("lang", "en")
 
@@ -425,13 +425,13 @@ func headDeferrals() iter.Seq[Element] {
 			return
 		}
 
-		if !yield(style(colorStylesheet)) {
+		if !yield(Stylesheet(colorStylesheet)) {
 			return
 		}
-		if !yield(style(unitsStylesheet)) {
+		if !yield(Stylesheet(unitsStylesheet)) {
 			return
 		}
-		if !yield(style(pageStylesheet)) {
+		if !yield(Stylesheet(pageStylesheet)) {
 			return
 		}
 	}

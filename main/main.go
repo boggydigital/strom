@@ -57,10 +57,11 @@ func aboveTheFold() iter.Seq[strom.Element] {
 	return func(yield func(strom.Element) bool) {
 		for ii := range 255 {
 			iistr := strconv.Itoa(ii)
-			if !yield(strom.CreateText("div", "Node "+iistr).SetStyle(map[string]string{
-				"color":  vars.Color(vars.ColorRed),
-				"height": vars.Size(vars.SizeLarge),
-			})) {
+			if !yield(strom.CreateText("div", "Node "+iistr).
+				SetStyle(map[string]string{
+					"color":  vars.Color(vars.ColorRed),
+					"height": vars.Size(vars.SizeLarge),
+				})) {
 				return
 			}
 			if !yield(strom.Comment("span").
