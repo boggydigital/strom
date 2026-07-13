@@ -17,9 +17,14 @@ func main() {
 
 func GetTest(w http.ResponseWriter, r *http.Request) {
 
-	root := strom.Html()
+	root := strom.Page("test")
 
-	root.Append(
+	var body strom.Element
+	for body = range root.GetElementsByTagName("body") {
+		break
+	}
+
+	body.Append(
 		strom.Defer(aboveTheFold),
 		strom.Defer(belowTheFold))
 
@@ -51,8 +56,8 @@ func aboveTheFold() iter.Seq[strom.Element] {
 	return func(yield func(strom.Element) bool) {
 		for ii := range 255 {
 			iistr := strconv.Itoa(ii)
-			if !yield(strom.CreateText("div", "Node "+iistr).SetStyles(map[string]string{
-				"color": "rgb(" + strconv.FormatInt(int64(ii), 10) + ",0,0)",
+			if !yield(strom.CreateText("div", "Node "+iistr).SetStyle(map[string]string{
+				"color": "rgb(" + strconv.FormatInt(int64(ii), 10) + ",255,255)",
 			})) {
 				return
 			}

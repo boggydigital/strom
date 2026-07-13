@@ -1,0 +1,55 @@
+:root {
+    --c-white: white;
+    --c-black: black;
+    --c-transparent: transparent;
+    --c-inherit: inherit;
+}
+
+/* https://developer.apple.com/design/human-interface-guidelines/color#macOS-system-colors */
+/* Accessible (Light) */
+
+@media screen and (prefers-color-scheme:light) {
+    :root {
+        --c-red: rgb(233,21,45);
+        --c-orange: rgb(197,83,0);
+        --c-yellow: rgb(161,106,0);
+        --c-green: rgb(0,137,50);
+        --c-mint: rgb(0,133,117);
+        --c-teal: rgb(0,129,152);
+        --c-cyan: rgb(0,126,174);
+        --c-blue: rgb(30,110,244);
+        --c-indigo: rgb(86,74,222);
+        --c-purple: rgb(176,47,194);
+        --c-pink: rgb(231,18,77);
+        --c-brown: rgb(149,109,81);
+        --c-gray: rgb(142,142,142);
+
+        --c-background: white;
+        --c-foreground: rgb(28,28,28);
+        --c-highlight: rgb(242,242,242);
+    }
+}
+
+/* Dark */
+
+@media screen and (prefers-color-scheme:dark) {
+    :root {
+        --c-red: rgb(255,97,101);
+        --c-orange: rgb(255,160,86);
+        --c-yellow: rgb(254,223,67);
+        --c-green: rgb(74,217,104);
+        --c-mint: rgb(84,223,203);
+        --c-teal: rgb(59,221,236);
+        --c-cyan: rgb(109,217,255);
+        --c-blue: rgb(92,184,255);
+        --c-indigo: rgb(167,179,255);
+        --c-purple: rgb(234,141,255);
+        --c-pink: rgb(255,138,196);
+        --c-brown: rgb(219,166,121);
+        --c-gray: rgb(142,142,142);
+
+        --c-background: black;
+        --c-foreground: rgb(242,242,242);
+        --c-highlight: rgb(28,28,28);
+    }
+}

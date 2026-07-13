@@ -1,0 +1,64 @@
+@view-transition {
+    navigation: auto;
+}
+
+@media screen and (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+}
+
+html {
+    min-height: 100%;
+    scroll-behavior: auto;
+    background-color: var(--c-background);
+    color: var(--c-foreground);
+    -webkit-font-smoothing: subpixel-antialiased;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: var(--s-n) calc(1.5 * var(--s-s));
+    container-type: inline-size;
+}
+
+* {
+    font-family: -apple-system, sans-serif;
+    margin: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--fw-b);
+}
+
+h1 {
+    font-size: var(--fs-xxxl)
+}
+
+h2 {
+    font-size: var(--fs-xxl)
+}
+
+h3 {
+    font-size: var(--fs-l);
+}
+
+h4,h5,h6 {
+    font-size: var(--fs-n);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+hr {
+    padding: 0;
+    border: var(--s-xxxs) solid var(--c-highlight);
+}
+
+ul {
+    padding-inline-start: var(--s-n);
+    list-style: "- ";
+}
+
