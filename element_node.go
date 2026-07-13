@@ -416,7 +416,7 @@ func headDeferrals() iter.Seq[Element] {
 			return
 		}
 		if !yield(Create("meta").
-			SetAttribute("color-scheme", "dark light")) {
+			SetAttribute("color-scheme", "light dark")) {
 			return
 		}
 		if !yield(Create("meta").

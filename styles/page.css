@@ -58,7 +58,7 @@ hr {
 }
 
 ul {
-    padding-inline-start: var(--s-n);
-    list-style: "- ";
+    padding-inline-start: 0;
+    list-style: none;
 }
 
