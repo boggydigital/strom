@@ -23,6 +23,8 @@ const (
 	singleSpace           = " "
 	openingCommentTagName = "<!--"
 	closingCommentTagName = "-->"
+	docTypeHtml           = "<!doctype html>"
+	htmlTagName           = "html"
 )
 
 var restrictedAttributes = []string{classAttributeName, styleAttributeName}
@@ -262,5 +264,13 @@ func Defer(getChildredDelegate func() iter.Seq[Element]) Element {
 	return &elementNode{
 		getChildrenDelegate: getChildredDelegate,
 		mtx:                 &sync.Mutex{},
+	}
+}
+
+func Html() Element {
+	return &elementNode{
+		mtx:     new(sync.Mutex),
+		tagName: htmlTagName,
+		prefix:  []byte(docTypeHtml),
 	}
 }

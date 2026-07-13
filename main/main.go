@@ -17,7 +17,7 @@ func main() {
 
 func GetTest(w http.ResponseWriter, r *http.Request) {
 
-	root := strom.Create("html")
+	root := strom.Html()
 
 	root.Append(
 		strom.Defer(aboveTheFold),
