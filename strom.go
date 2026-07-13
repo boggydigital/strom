@@ -142,6 +142,19 @@ func (e *elementNode) Write(w io.Writer) error {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 
+	// writing element node is a sequence of writing:
+	// 1. prefix (e.g. `<!--` for comments)
+	// 2. `<tagName`
+	// 3. classes (` class='class1 class2`)
+	// 4. inline styles (` style='color:purple'`)
+	// 5. attributes (` attr='value')
+	// 6. `>`
+	// 7. text content
+	// 8. children or deferred children
+	// 9. `</tagName>`
+	// 10. suffix (e.g. `-->` for comments)
+
+	// 1
 	switch e.prefix {
 	case nil:
 	// do nothing
@@ -151,53 +164,50 @@ func (e *elementNode) Write(w io.Writer) error {
 		}
 	}
 
-	switch e.tagName {
-	case "":
-		if len(e.classes) > 0 {
-			return errors.New("transparent containers cannot have classes")
-		}
-		if len(e.attributes) > 0 {
-			return errors.New("transparent containers cannot have attributes")
-		}
-	default:
-		if err := writeStrings(w, openingAngleBracket, e.tagName); err != nil {
-			return nil
-		}
+	// 2
+	if err := writeStrings(w, openingAngleBracket, e.tagName); err != nil {
+		return nil
+	}
 
-		if len(e.classes) > 0 {
+	// 3
+	if len(e.classes) > 0 {
 
-			for _, ra := range restrictedAttributes {
-				if _, ok := e.attributes[ra]; ok {
-					return errors.New("restrictred attribute " + ra)
-				}
-			}
-
-			if err := writeAttribute(w, classAttributeName, e.classList()); err != nil {
-				return err
+		for _, ra := range restrictedAttributes {
+			if _, ok := e.attributes[ra]; ok {
+				return errors.New("restrictred attribute " + ra)
 			}
 		}
 
-		if len(e.styles) > 0 {
-			if err := writeStyles(w, e.styles); err != nil {
-				return err
-			}
-		}
-
-		for attributeName, attributeValue := range e.attributes {
-			if err := writeAttribute(w, attributeName, attributeValue); err != nil {
-				return err
-			}
-		}
-
-		if err := writeStrings(w, closingAngleBracket); err != nil {
-			return err
-		}
-
-		if _, err := w.Write(e.textContent); err != nil {
+		if err := writeAttribute(w, classAttributeName, e.classList()); err != nil {
 			return err
 		}
 	}
 
+	// 4
+	if len(e.styles) > 0 {
+		if err := writeStyles(w, e.styles); err != nil {
+			return err
+		}
+	}
+
+	// 5
+	for attributeName, attributeValue := range e.attributes {
+		if err := writeAttribute(w, attributeName, attributeValue); err != nil {
+			return err
+		}
+	}
+
+	// 6
+	if err := writeStrings(w, closingAngleBracket); err != nil {
+		return err
+	}
+
+	// 7
+	if _, err := w.Write(e.textContent); err != nil {
+		return err
+	}
+
+	// 8
 	var children iter.Seq[Element]
 
 	switch e.getChildrenDelegate {
@@ -215,15 +225,12 @@ func (e *elementNode) Write(w io.Writer) error {
 		}
 	}
 
-	switch e.tagName {
-	case "":
-	// do nothing
-	default:
-		if err := writeStrings(w, openingAngleBracket, forwardSlash, e.tagName, closingAngleBracket); err != nil {
-			return err
-		}
+	// 9
+	if err := writeStrings(w, openingAngleBracket, forwardSlash, e.tagName, closingAngleBracket); err != nil {
+		return err
 	}
 
+	// 10
 	switch e.suffix {
 	case nil:
 	// do nothing
