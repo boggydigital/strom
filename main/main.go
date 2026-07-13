@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/boggydigital/strom"
+	"github.com/boggydigital/strom/vars"
 )
 
 func main() {
@@ -57,7 +58,8 @@ func aboveTheFold() iter.Seq[strom.Element] {
 		for ii := range 255 {
 			iistr := strconv.Itoa(ii)
 			if !yield(strom.CreateText("div", "Node "+iistr).SetStyle(map[string]string{
-				"color": "rgb(" + strconv.FormatInt(int64(ii), 10) + ",255,255)",
+				"color":  vars.Color(vars.ColorRed),
+				"height": vars.Size(vars.SizeLarge),
 			})) {
 				return
 			}

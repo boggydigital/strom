@@ -12,22 +12,25 @@ import (
 )
 
 const (
-	openingAngleBracket   = "<"
-	closingAngleBracket   = ">"
-	forwardSlash          = "/"
-	equalSign             = "="
-	singleQuote           = "'"
-	colon                 = ":"
-	semicolon             = ";"
-	classAttributeName    = "class"
-	styleAttributeName    = "style"
-	idAttributeName       = "id"
-	singleSpace           = " "
-	openingCommentTagName = "<!--"
-	closingCommentTagName = "-->"
-	docTypeHtml           = "<!doctype html>"
-	htmlTagName           = "html"
-	styleTagName          = styleAttributeName
+	openingAngleBracket = "<"
+	closingAngleBracket = ">"
+	forwardSlash        = "/"
+	equalSign           = "="
+	singleQuote         = "'"
+	colon               = ":"
+	semicolon           = ";"
+	singleSpace         = " "
+
+	commentPrefix     = "<!--"
+	commentSuffix     = "-->"
+	docTypeHtmlPrefix = "<!doctype html>"
+
+	classAttributeName = "class"
+	styleAttributeName = "style"
+	idAttributeName    = "id"
+
+	htmlTagName  = "html"
+	styleTagName = "style"
 )
 
 //go:embed "styles/colors.css"
@@ -356,9 +359,9 @@ func CreateText(tagName, textContent string) Element {
 func Comment(tagName string) Element {
 	return &elementNode{
 		mtx:     new(sync.Mutex),
-		prefix:  []byte(openingCommentTagName),
+		prefix:  []byte(commentPrefix),
 		tagName: tagName,
-		suffix:  []byte(closingCommentTagName),
+		suffix:  []byte(commentSuffix),
 	}
 }
 
@@ -373,7 +376,7 @@ func doctypeHml() Element {
 	return &elementNode{
 		mtx:     new(sync.Mutex),
 		tagName: htmlTagName,
-		prefix:  []byte(docTypeHtml),
+		prefix:  []byte(docTypeHtmlPrefix),
 	}
 }
 
