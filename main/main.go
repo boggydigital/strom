@@ -51,12 +51,12 @@ func aboveTheFold() iter.Seq[strom.Element] {
 	return func(yield func(strom.Element) bool) {
 		for ii := range 255 {
 			iistr := strconv.Itoa(ii)
-			if !yield(strom.Create("div", "Node "+iistr).SetStyles(map[string]string{
+			if !yield(strom.CreateText("div", "Node "+iistr).SetStyles(map[string]string{
 				"color": "rgb(" + strconv.FormatInt(int64(ii), 10) + ",0,0)",
 			})) {
 				return
 			}
-			if !yield(strom.Create("span").
+			if !yield(strom.Comment("span").
 				SetTextContent("Test Text")) {
 				return
 			}
@@ -71,7 +71,7 @@ func belowTheFold() iter.Seq[strom.Element] {
 
 			iistr := strconv.Itoa(ii)
 
-			if !yield(strom.Create("div", "Node "+iistr).
+			if !yield(strom.CreateText("div", "Node "+iistr).
 				AddClass("test-deferred-class").
 				SetAttribute("id", iistr).
 				SetTextContent("Deferred Node " + iistr)) {

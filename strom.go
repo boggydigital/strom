@@ -11,26 +11,30 @@ import (
 )
 
 const (
-	openingAngleBracket = "<"
-	closingAngleBracket = ">"
-	forwardSlash        = "/"
-	equalSign           = "="
-	singleQuote         = "'"
-	colon               = ":"
-	semicolon           = ";"
-	classAttributeName  = "class"
-	styleAttributeName  = "style"
-	singleSpace         = " "
+	openingAngleBracket   = "<"
+	closingAngleBracket   = ">"
+	forwardSlash          = "/"
+	equalSign             = "="
+	singleQuote           = "'"
+	colon                 = ":"
+	semicolon             = ";"
+	classAttributeName    = "class"
+	styleAttributeName    = "style"
+	singleSpace           = " "
+	openingCommentTagName = "<!--"
+	closingCommentTagName = "-->"
 )
 
 var restrictedAttributes = []string{classAttributeName, styleAttributeName}
 
-type node struct {
+type elementNode struct {
 	tagName             string
 	textContent         []byte
 	classes             map[string]any
 	attributes          map[string]string
 	styles              map[string]string
+	prefix              []byte
+	suffix              []byte
 	children            []Element
 	getChildrenDelegate func() iter.Seq[Element]
 	mtx                 *sync.Mutex
@@ -45,7 +49,7 @@ type Element interface {
 	Write(w io.Writer) error
 }
 
-func (e *node) SetTextContent(textContent string) Element {
+func (e *elementNode) SetTextContent(textContent string) Element {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 
@@ -53,7 +57,7 @@ func (e *node) SetTextContent(textContent string) Element {
 	return e
 }
 
-func (e *node) AddClass(classes ...string) Element {
+func (e *elementNode) AddClass(classes ...string) Element {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 
@@ -68,7 +72,7 @@ func (e *node) AddClass(classes ...string) Element {
 	return e
 }
 
-func (e *node) SetStyles(styles map[string]string) Element {
+func (e *elementNode) SetStyles(styles map[string]string) Element {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 
@@ -83,11 +87,11 @@ func (e *node) SetStyles(styles map[string]string) Element {
 	return e
 }
 
-func (e *node) classList() string {
+func (e *elementNode) classList() string {
 	return strings.Join(slices.Collect(maps.Keys(e.classes)), singleSpace)
 }
 
-func (e *node) SetAttribute(name string, value string) Element {
+func (e *elementNode) SetAttribute(name string, value string) Element {
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
 
@@ -99,7 +103,7 @@ func (e *node) SetAttribute(name string, value string) Element {
 	return e
 }
 
-func (e *node) Append(nodes ...Element) Element {
+func (e *elementNode) Append(nodes ...Element) Element {
 	e.children = append(e.children, nodes...)
 	return e
 }
@@ -131,10 +135,19 @@ func writeStyles(w io.Writer, styles map[string]string) error {
 	return writeStrings(w, singleQuote)
 }
 
-func (e *node) Write(w io.Writer) error {
+func (e *elementNode) Write(w io.Writer) error {
 
 	e.mtx.Lock()
 	defer e.mtx.Unlock()
+
+	switch e.prefix {
+	case nil:
+	// do nothing
+	default:
+		if _, err := w.Write(e.prefix); err != nil {
+			return err
+		}
+	}
 
 	switch e.tagName {
 	case "":
@@ -209,30 +222,44 @@ func (e *node) Write(w io.Writer) error {
 		}
 	}
 
+	switch e.suffix {
+	case nil:
+	// do nothing
+	default:
+		if _, err := w.Write(e.suffix); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func Create(options ...string) Element {
-
-	var tagName string
-	var textContent string
-
-	if len(options) > 0 {
-		tagName = options[0]
+func Create(tagName string) Element {
+	return &elementNode{
+		mtx:     new(sync.Mutex),
+		tagName: tagName,
 	}
-	if len(options) > 1 {
-		textContent = options[1]
-	}
+}
 
-	return &node{
+func CreateText(tagName, textContent string) Element {
+	return &elementNode{
+		mtx:         new(sync.Mutex),
 		tagName:     tagName,
 		textContent: []byte(textContent),
-		mtx:         &sync.Mutex{},
+	}
+}
+
+func Comment(tagName string) Element {
+	return &elementNode{
+		mtx:     new(sync.Mutex),
+		prefix:  []byte(openingCommentTagName),
+		tagName: tagName,
+		suffix:  []byte(closingCommentTagName),
 	}
 }
 
 func Defer(getChildredDelegate func() iter.Seq[Element]) Element {
-	return &node{
+	return &elementNode{
 		getChildrenDelegate: getChildredDelegate,
 		mtx:                 &sync.Mutex{},
 	}
