@@ -42,6 +42,9 @@ var unitsStylesheet []byte
 //go:embed "styles/page.css"
 var pageStylesheet []byte
 
+//go:embed "styles/atomics.css"
+var atomicsStylesheet []byte
+
 var restrictedAttributes = []string{classAttributeName, styleAttributeName}
 
 type elementNode struct {
@@ -63,7 +66,7 @@ type Element interface {
 	HasClass(classes ...string) bool
 	GetTagName() string
 	GetAttribute(name string) string
-	SetAttribute(name string, value string) Element
+	SetAttribute(attrs ...string) Element
 	SetStyle(styles map[string]string) Element
 	Append(nodes ...Element) Element
 	GetElementById(id string) Element
@@ -177,7 +180,7 @@ func (en *elementNode) classList() string {
 	return strings.Join(slices.Collect(maps.Keys(en.classes)), singleSpace)
 }
 
-func (en *elementNode) SetAttribute(name string, value string) Element {
+func (en *elementNode) SetAttribute(attrs ...string) Element {
 	en.mtx.Lock()
 	defer en.mtx.Unlock()
 
@@ -185,7 +188,19 @@ func (en *elementNode) SetAttribute(name string, value string) Element {
 		en.attributes = make(map[string]string)
 	}
 
-	en.attributes[name] = value
+	switch len(attrs) {
+	case 0:
+		// no op
+	case 1:
+		en.attributes[attrs[0]] = "" // empty attribute
+	default:
+		// when 2 or more values are provided use all, but
+		// the last one as names, use last one as value
+		for _, name := range attrs[:len(attrs)-1] {
+			en.attributes[name] = attrs[len(attrs)-1]
+		}
+	}
+
 	return en
 }
 
@@ -341,19 +356,23 @@ func (en *elementNode) Write(w io.Writer) error {
 	return nil
 }
 
-func Create(tagName string) Element {
-	return &elementNode{
+func Create(tagName string, classes ...string) Element {
+	en := &elementNode{
 		mtx:     new(sync.Mutex),
 		tagName: tagName,
 	}
+
+	return en.AddClass(classes...)
 }
 
-func CreateText(tagName, textContent string) Element {
-	return &elementNode{
+func CreateText(tagName, textContent string, classes ...string) Element {
+	en := &elementNode{
 		mtx:         new(sync.Mutex),
 		tagName:     tagName,
 		textContent: []byte(textContent),
 	}
+
+	return en.AddClass(classes...)
 }
 
 func Comment(tagName string) Element {
@@ -432,6 +451,9 @@ func headDeferrals() iter.Seq[Element] {
 			return
 		}
 		if !yield(Stylesheet(pageStylesheet)) {
+			return
+		}
+		if !yield(Stylesheet(atomicsStylesheet)) {
 			return
 		}
 	}
