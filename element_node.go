@@ -407,8 +407,8 @@ func Stylesheet(content []byte) Element {
 	}
 }
 
-func Page(title string) Element {
-	root := DoctypeHml().
+func RootBody(title string) (root Element, body Element) {
+	root = DoctypeHml().
 		SetAttribute("id", "_top").
 		SetAttribute("lang", "en")
 
@@ -417,10 +417,10 @@ func Page(title string) Element {
 	head.Append(Defer(headDeferrals))
 	root.Append(head)
 
-	body := Create("body")
+	body = Create("body")
 	root.Append(body)
 
-	return root
+	return root, body
 }
 
 func headDeferrals() iter.Seq[Element] {
