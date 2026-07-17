@@ -1,35 +1,29 @@
 :root {
     --s-n: 1rem; /* 16px */
-
     --s-s: calc(var(--s-n) / 2); /* 0.5rem == 8px */
     --s-xs: calc(var(--s-s) / 2); /* 0.25rem == 4px */
     --s-xxs: calc(var(--s-xs) / 2); /* 0.125rem == 2px */
     --s-xxxs: calc(var(--s-xxs) / 2); /* 0.0625rem == 1px */
-
     --s-l: calc(2 * var(--s-n)); /* 2rem == 32px */
     --s-xl: calc(2 * var(--s-l)); /* 4rem == 64px */
     --s-xxl: calc(2 * var(--s-xl)); /* 8rem == 128px */
     --s-xxxl: calc(2 * var(--s-xxl)); /* 16rem == 256px */
 
     --fs-n: 12pt;
-
     --fs-s: 11pt;
     --fs-xs: 10pt;
     --fs-xxs: 9pt;
     --fs-xxxs: 7pt;
-
     --fs-l: 13pt;
     --fs-xl: 15pt;
     --fs-xxl: 17pt;
     --fs-xxxl: 22pt;
 
     --fw-n: 450;
-
     --fw-l: 300;
     --fw-b: 600;
 
     --du-n: 1024ms;
-
     --du-f: 256ms;
     --du-s: 2048ms;
 }

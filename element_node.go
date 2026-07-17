@@ -9,6 +9,8 @@ import (
 	"slices"
 	"strings"
 	"sync"
+
+	"github.com/boggydigital/strom/vars/atoms"
 )
 
 const (
@@ -29,8 +31,9 @@ const (
 	styleAttributeName = "style"
 	idAttributeName    = "id"
 
-	htmlTagName  = "html"
-	styleTagName = "style"
+	htmlTagName   = "html"
+	styleTagName  = "style"
+	scriptTagName = "script"
 )
 
 //go:embed "styles/colors.css"
@@ -42,7 +45,7 @@ var unitsStylesheet []byte
 //go:embed "styles/page.css"
 var pageStylesheet []byte
 
-//go:embed "styles/atomics.css"
+//go:embed "styles/atoms.css"
 var atomicsStylesheet []byte
 
 var restrictedAttributes = []string{classAttributeName, styleAttributeName}
@@ -62,6 +65,7 @@ type elementNode struct {
 
 type Element interface {
 	SetTextContent(textContent string) Element
+	AddAtoms(atoms ...atoms.Atom) Element
 	AddClass(classes ...string) Element
 	HasClass(classes ...string) bool
 	GetTagName() string
@@ -80,6 +84,21 @@ func (en *elementNode) SetTextContent(textContent string) Element {
 	defer en.mtx.Unlock()
 
 	en.textContent = []byte(textContent)
+	return en
+}
+
+func (en *elementNode) AddAtoms(atoms ...atoms.Atom) Element {
+	en.mtx.Lock()
+	defer en.mtx.Unlock()
+
+	if en.classes == nil {
+		en.classes = make(map[string]any)
+	}
+
+	for _, at := range atoms {
+		en.classes[at.Class()] = nil
+	}
+
 	return en
 }
 
@@ -356,23 +375,23 @@ func (en *elementNode) Write(w io.Writer) error {
 	return nil
 }
 
-func Create(tagName string, classes ...string) Element {
+func Create(tagName string, atoms ...atoms.Atom) Element {
 	en := &elementNode{
 		mtx:     new(sync.Mutex),
 		tagName: tagName,
 	}
 
-	return en.AddClass(classes...)
+	return en.AddAtoms(atoms...)
 }
 
-func CreateText(tagName, textContent string, classes ...string) Element {
+func CreateText(tagName, textContent string, atoms ...atoms.Atom) Element {
 	en := &elementNode{
 		mtx:         new(sync.Mutex),
 		tagName:     tagName,
 		textContent: []byte(textContent),
 	}
 
-	return en.AddClass(classes...)
+	return en.AddAtoms(atoms...)
 }
 
 func Comment(tagName string) Element {
@@ -384,7 +403,7 @@ func Comment(tagName string) Element {
 	}
 }
 
-func Defer(getChildredDelegate func() iter.Seq[Element]) Element {
+func OnDemand(getChildredDelegate func() iter.Seq[Element]) Element {
 	return &elementNode{
 		getChildrenDelegate: getChildredDelegate,
 		mtx:                 &sync.Mutex{},
@@ -407,6 +426,18 @@ func Stylesheet(content []byte) Element {
 	}
 }
 
+func Script(content []byte) Element {
+	scriptNode := &elementNode{
+		mtx:         new(sync.Mutex),
+		tagName:     scriptTagName,
+		textContent: content,
+	}
+
+	scriptNode.SetAttribute("async")
+
+	return scriptNode
+}
+
 func RootBody(title string) (root Element, body Element) {
 	root = DoctypeHml().
 		SetAttribute("id", "_top").
@@ -414,7 +445,7 @@ func RootBody(title string) (root Element, body Element) {
 
 	head := Create("head")
 	head.Append(CreateText("title", title))
-	head.Append(Defer(headDeferrals))
+	head.Append(OnDemand(getHeadChildren))
 	root.Append(head)
 
 	body = Create("body")
@@ -423,7 +454,7 @@ func RootBody(title string) (root Element, body Element) {
 	return root, body
 }
 
-func headDeferrals() iter.Seq[Element] {
+func getHeadChildren() iter.Seq[Element] {
 	return func(yield func(element Element) bool) {
 		if !yield(Create("meta").
 			SetAttribute("charset", "utf-8")) {

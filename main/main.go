@@ -6,7 +6,8 @@ import (
 	"strconv"
 
 	"github.com/boggydigital/strom"
-	"github.com/boggydigital/strom/vars"
+	"github.com/boggydigital/strom/vars/colors"
+	"github.com/boggydigital/strom/vars/sizes"
 )
 
 func main() {
@@ -18,16 +19,11 @@ func main() {
 
 func GetTest(w http.ResponseWriter, r *http.Request) {
 
-	root := strom.Page("test")
-
-	var body strom.Element
-	for body = range root.GetElementsByTagName("body") {
-		break
-	}
+	root, body := strom.RootBody("test")
 
 	body.Append(
-		strom.Defer(aboveTheFold),
-		strom.Defer(belowTheFold))
+		strom.OnDemand(aboveTheFold),
+		strom.OnDemand(belowTheFold))
 
 	//for ii := range 255 {
 	//	iistr := strconv.Itoa(ii)
@@ -59,8 +55,8 @@ func aboveTheFold() iter.Seq[strom.Element] {
 			iistr := strconv.Itoa(ii)
 			if !yield(strom.CreateText("div", "Node "+iistr).
 				SetStyle(map[string]string{
-					"color":  vars.Color(vars.ColorRed),
-					"height": vars.Size(vars.SizeLarge),
+					"color":  colors.Red,
+					"height": sizes.Large,
 				})) {
 				return
 			}

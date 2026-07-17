@@ -1,33 +1,38 @@
 /* display */
 .d-f {display: flex}
+/* flex-flow */
+.ff-rw {flex-flow: row wrap}
+.ff-rnw {flex-flow: row nowrap}
+.ff-cw {flex-flow: column wrap}
+.ff-cnw {flex-flow: column nowrap}
 /* flex-direction */
 .fd-c {flex-direction: column}
 .fd-r {flex-direction: row}
 /* row-gap */
-.rg-s {row-gap: var(--s-s)}
 .rg-n {row-gap: var(--s-n)}
+.rg-s {row-gap: var(--s-s)}
 .rg-l {row-gap: var(--s-l)}
 /* column-gap */
-.cg-s {column-gap: var(--s-s)}
 .cg-n {column-gap: var(--s-n)}
+.cg-s {column-gap: var(--s-s)}
 .cg-l {column-gap: var(--s-l)}
 /* padding */
-.p-s {padding: var(--s-s)}
 .p-n {padding: var(--s-n)}
+.p-s {padding: var(--s-s)}
 .p-l {padding: var(--s-l)}
 /* margin */
-.m-s {margin: var(--s-s)}
 .m-n {margin: var(--s-n)}
+.m-s {margin: var(--s-s)}
 .m-l {margin: var(--s-l)}
 /* font-size */
-.fs-s {font-size: var(--fs-s)}
 .fs-n {font-size: var(--fs-n)}
+.fs-s {font-size: var(--fs-s)}
 .fs-l {font-size: var(--fs-l)}
 /* font-weight */
-.fw-l {font-weight: var(--fw-l)}
 .fw-n {font-weight: var(--fw-n)}
+.fw-l {font-weight: var(--fw-l)}
 .fw-b {font-weight: var(--fw-b)}
 /* border-radius */
-.br-s {border-radius: var(--s-s)}
 .br-n {border-radius: var(--s-n)}
+.br-s {border-radius: var(--s-s)}
 .br-l {border-radius: var(--s-l)}
