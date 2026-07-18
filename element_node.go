@@ -438,7 +438,7 @@ func Script(content []byte) Element {
 	return scriptNode
 }
 
-func RootBody(title string) (root Element, body Element) {
+func RootBody(title string, bodyAtoms ...atoms.Atom) (root Element, body Element) {
 	root = DoctypeHml().
 		SetAttribute("id", "_top").
 		SetAttribute("lang", "en")
@@ -448,7 +448,7 @@ func RootBody(title string) (root Element, body Element) {
 	head.Append(OnDemand(getHeadChildren))
 	root.Append(head)
 
-	body = Create("body")
+	body = Create("body", bodyAtoms...)
 	root.Append(body)
 
 	return root, body

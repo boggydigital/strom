@@ -92,7 +92,7 @@ func FlexRowWrap(gap sizes.Size) []Atom {
 	return flexFlow(FlexFlowRowWrap, gap)
 }
 
-func FlexRowNoWrap(gap sizes.Size) []Atom {
+func FlexRow(gap sizes.Size) []Atom {
 	return flexFlow(FlexFlowRowNoWrap, gap)
 }
 
@@ -100,7 +100,7 @@ func FlexColWrap(gap sizes.Size) []Atom {
 	return flexFlow(FlexFlowColWrap, gap)
 }
 
-func FlexColNoWrap(gap sizes.Size) []Atom {
+func FlexCol(gap sizes.Size) []Atom {
 	return flexFlow(FlexFlowColNoWrap, gap)
 }
 
