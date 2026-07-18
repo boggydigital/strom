@@ -15,6 +15,22 @@ const (
 	FlexDirColumn
 	FlexDirRow
 
+	AlignItemsStart
+	AlignItemsCenter
+	AlignItemsEnd
+
+	AlignContentStart
+	AlignContentCenter
+	AlignContentEnd
+
+	JustifyItemsStart
+	JustifyItemsCenter
+	JustifyItemsEnd
+
+	JustifyContentStart
+	JustifyContentCenter
+	JustifyContentEnd
+
 	RowGapNormal
 	RowGapSmall
 	RowGapLarge
@@ -54,6 +70,22 @@ var atomicClasses = map[Atom]string{
 
 	FlexDirColumn: "fd-c",
 	FlexDirRow:    "fd-r",
+
+	AlignItemsStart:  "ai-s",
+	AlignItemsCenter: "ai-c",
+	AlignItemsEnd:    "ai-e",
+
+	AlignContentStart:  "ac-s",
+	AlignContentCenter: "ac-c",
+	AlignContentEnd:    "ac-e",
+
+	JustifyItemsStart:  "ji-s",
+	JustifyItemsCenter: "ji-c",
+	JustifyItemsEnd:    "ji-e",
+
+	JustifyContentStart:  "jc-s",
+	JustifyContentCenter: "jc-c",
+	JustifyContentEnd:    "jc-e",
 
 	RowGapNormal: "rg-n",
 	RowGapSmall:  "rg-s",
