@@ -55,7 +55,7 @@ type elementNode struct {
 	textContent         []byte
 	classes             map[string]any
 	attributes          map[string]string
-	styles              map[string]string
+	styles              []string
 	prefix              []byte
 	suffix              []byte
 	children            []Element
@@ -71,7 +71,7 @@ type Element interface {
 	GetTagName() string
 	GetAttribute(name string) string
 	SetAttribute(attrs ...string) Element
-	SetStyle(styles map[string]string) Element
+	SetStyle(styles ...string) Element
 	Append(nodes ...Element) Element
 	GetElementById(id string) Element
 	GetElementsByTagName(tagName string) iter.Seq[Element]
@@ -130,16 +130,12 @@ func (en *elementNode) GetTagName() string {
 	return en.tagName
 }
 
-func (en *elementNode) SetStyle(styles map[string]string) Element {
+func (en *elementNode) SetStyle(styles ...string) Element {
 	en.mtx.Lock()
 	defer en.mtx.Unlock()
 
-	if en.styles == nil {
-		en.styles = make(map[string]string)
-	}
-
-	for p, v := range styles {
-		en.styles[p] = v
+	for _, s := range styles {
+		en.styles = append(en.styles, s)
 	}
 
 	return en
@@ -241,13 +237,13 @@ func writeAttribute(w io.Writer, name, value string) error {
 	return writeStrings(w, singleSpace, name, equalSign, singleQuote, value, singleQuote)
 }
 
-func writeStyles(w io.Writer, styles map[string]string) error {
+func writeStyles(w io.Writer, styles ...string) error {
 	if err := writeStrings(w, singleSpace, styleAttributeName, equalSign, singleQuote); err != nil {
 		return err
 	}
 
-	for p, v := range styles {
-		if err := writeStrings(w, p, colon, v, semicolon); err != nil {
+	for _, s := range styles {
+		if err := writeStrings(w, s, semicolon); err != nil {
 			return err
 		}
 	}
@@ -311,7 +307,7 @@ func (en *elementNode) Write(w io.Writer) error {
 
 		// 4
 		if len(en.styles) > 0 {
-			if err := writeStyles(w, en.styles); err != nil {
+			if err := writeStyles(w, en.styles...); err != nil {
 				return err
 			}
 		}
