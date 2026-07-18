@@ -65,7 +65,7 @@ type elementNode struct {
 
 type Element interface {
 	SetTextContent(textContent string) Element
-	AddAtoms(atoms ...atoms.Atom) Element
+	AddAtom(atoms ...atoms.Atom) Element
 	AddClass(classes ...string) Element
 	HasClass(classes ...string) bool
 	GetTagName() string
@@ -87,7 +87,7 @@ func (en *elementNode) SetTextContent(textContent string) Element {
 	return en
 }
 
-func (en *elementNode) AddAtoms(atoms ...atoms.Atom) Element {
+func (en *elementNode) AddAtom(atoms ...atoms.Atom) Element {
 	en.mtx.Lock()
 	defer en.mtx.Unlock()
 
@@ -381,7 +381,7 @@ func Create(tagName string, atoms ...atoms.Atom) Element {
 		tagName: tagName,
 	}
 
-	return en.AddAtoms(atoms...)
+	return en.AddAtom(atoms...)
 }
 
 func CreateText(tagName, textContent string, atoms ...atoms.Atom) Element {
@@ -391,7 +391,7 @@ func CreateText(tagName, textContent string, atoms ...atoms.Atom) Element {
 		textContent: []byte(textContent),
 	}
 
-	return en.AddAtoms(atoms...)
+	return en.AddAtom(atoms...)
 }
 
 func Comment(tagName string) Element {
