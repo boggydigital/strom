@@ -7,7 +7,7 @@ const (
 	Small    FontSize = "var(--fs-s)"
 	XSmall   FontSize = "var(--fs-xs)"
 	XXSmall  FontSize = "var(--fs-xxs)"
-	XXXSmall FontSize = "var(--fs-xxs)"
+	XXXSmall FontSize = "var(--fs-xxxs)"
 	Large    FontSize = "var(--fs-l)"
 	XLarge   FontSize = "var(--fs-xl)"
 	XXLarge  FontSize = "var(--fs-xxl)"
