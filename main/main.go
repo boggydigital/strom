@@ -54,10 +54,10 @@ func aboveTheFold() iter.Seq[strom.Element] {
 		for ii := range 255 {
 			iistr := strconv.Itoa(ii)
 			if !yield(strom.CreateText("div", "Node "+iistr).
-				SetStyle(map[string]string{
-					"color":  colors.Red,
-					"height": sizes.Large,
-				})) {
+				SetStyle(
+					"color:"+colors.Red,
+					"height:"+sizes.Large,
+				)) {
 				return
 			}
 			if !yield(strom.Comment("span").
