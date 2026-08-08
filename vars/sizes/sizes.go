@@ -7,7 +7,7 @@ const (
 	Small    Size = "var(--s-s)"
 	XSmall   Size = "var(--s-xs)"
 	XXSmall  Size = "var(--s-xxs)"
-	XXXSmall Size = "var(--s-xxs)"
+	XXXSmall Size = "var(--s-xxxs)"
 	Large    Size = "var(--s-l)"
 	XLarge   Size = "var(--s-xl)"
 	XXLarge  Size = "var(--s-xxl)"
