@@ -54,4 +54,4 @@
 .br-l {border-radius: var(--s-l)}
 /* mobile width: 100% */
 .rw {width: var(--rw-n)}
-@container (max-width: 592px) {.rw {width: var(--rw-s)}}
+@container (max-width: 600px) {.rw {width: var(--rw-s)}}
