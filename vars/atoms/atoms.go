@@ -58,6 +58,8 @@ const (
 	BorderRadiusNormal
 	BorderRadiusSmall
 	BorderRadiusLarge
+
+	ResponsiveWidth
 )
 
 var atomicClasses = map[Atom]string{
@@ -114,6 +116,8 @@ var atomicClasses = map[Atom]string{
 	BorderRadiusNormal: "br-n",
 	BorderRadiusSmall:  "br-s",
 	BorderRadiusLarge:  "br-l",
+
+	ResponsiveWidth: "rw",
 }
 
 func (a Atom) Class() string {

@@ -26,5 +26,8 @@
     --du-n: 1024ms;
     --du-f: 256ms;
     --du-s: 2048ms;
+
+    --rw-n: fit-content;
+    --rw-s: 100%;
 }
 
